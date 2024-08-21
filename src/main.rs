@@ -18,7 +18,7 @@ mod error;
 mod models;
 
 #[get("/user")]
-async fn get_user(data: Data<Database>) -> impl Responder {
+async fn get_user(data: Data<Database>) -> Result<Json<Vec<User>>, UserError> {
     let users = data.get_all_users().await;
     match users {
         Some(valid_users) => Ok(Json(valid_users)),
@@ -27,7 +27,7 @@ async fn get_user(data: Data<Database>) -> impl Responder {
 }
 
 #[post("/user")]
-async fn post_user(body: Json<UserRequest>, db: Data<Database>) -> impl Responder {
+async fn post_user(body: Json<UserRequest>, db: Data<Database>) -> Result<Json<User>, UserError> {
     let is_valid = body.validate();
     match is_valid {
         Ok(_) => {
@@ -38,16 +38,12 @@ async fn post_user(body: Json<UserRequest>, db: Data<Database>) -> impl Responde
             let new_user = db.add_user(User::new(String::from(new_uuid), name)).await;
 
             match new_user {
-                Some(user) => HttpResponse::Ok().body(format!("User created is {:?}", user)),
-                None => HttpResponse::Ok().body("Error creating user"),
-            };
+                Some(user) => Ok(Json(user)),
+                None => Err(UserError::UserCreationFailure),
+            }
         }
-        Err(e) => {
-            println!("User is invalid: {:?}", e);
-            return HttpResponse::Ok().body("User is invalid");
-        }
+        Err(_) => Err(UserError::UserCreationFailure),
     }
-    HttpResponse::Ok().body("User created")
 }
 
 #[patch("/user/{uuid}")]
