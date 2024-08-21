@@ -6,7 +6,7 @@ use actix_web::{
 };
 use db::database::Database;
 use models::user::User;
-use models::userrequest::UserRequest;
+use models::user_request::UserRequest;
 use models::uuid::Uuid;
 use uuid;
 use validator::Validate;

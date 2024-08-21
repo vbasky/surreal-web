@@ -1,3 +1,3 @@
 pub mod user;
-pub mod userrequest;
+pub mod user_request;
 pub mod uuid;
