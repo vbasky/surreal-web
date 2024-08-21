@@ -5,21 +5,24 @@ use actix_web::{
     App, HttpRequest, HttpResponse, HttpServer, Responder,
 };
 use db::database::Database;
+use error::user_error::UserError;
 use models::user::User;
 use models::user_request::UserRequest;
 use models::uuid::Uuid;
+use std::result::Result;
 use uuid;
 use validator::Validate;
 
 mod db;
+mod error;
 mod models;
 
 #[get("/user")]
 async fn get_user(data: Data<Database>) -> impl Responder {
     let users = data.get_all_users().await;
     match users {
-        Some(valid_users) => HttpResponse::Ok().body(format!("{:?}", valid_users)),
-        None => HttpResponse::Ok().body("Error!"),
+        Some(valid_users) => Ok(Json(valid_users)),
+        None => Err(UserError::NoUserFound),
     }
 }
 
